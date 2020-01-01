@@ -1,9 +1,47 @@
 #!/usr/bin/env python3
 from string import ascii_uppercase
 
-#sentences = ['(P > Q)', 'P', 'Q', '(((P > Q) ^ P) > Q)']
-sentences = ['(-(A ^ B) v (-C v --D))', '---((B v C) v -A)', '(C > D)']
-#                   AB^-C-D--vv              BCvA-v---
+while True:
+    choice = input(f'Welcome to the Propositional Logic Calculator!\n'
+                   f"Enter '1' to check if a sentence is a tautology, contradiction, or contingent.\n"
+                   f"Enter '2' to check if a set of sentences is consistent/satisfiable.\n"
+                   f"Enter '3' to check if an argument is valid.\n"
+                   f'> ')
+    print('\033[H\033[J', end='')    # Clears the screen.
+    if choice == '1':
+        print(f'Checking if a sentence is a tautology, contradiction, or contingent.\n'
+              f'Enter a well-formed formula.\n')
+        while True:
+            line = input('1: ')
+            if line:
+                sentences = [line]
+                break
+            else:
+                print('Enter a well-formed formula.\n')
+        break
+    elif choice in ('2', '3'):
+        if choice == '2':
+            print(f'Checking if a set of sentences is consistent/satisfiable.\n'
+                  f'Enter an empty line to stop.\n')
+        elif choice == '3':
+            print(f'Checking if an argument is valid.\n'
+                  f'Enter an empty line to stop.\n'
+                  f'The last sentence entered is the conclusion.\n')
+        sentences = []
+        i = 1
+        while True:
+            line = input(f'{i}: ')
+            if line:
+                sentences.append(line)
+            elif not sentences:
+                print('Enter at least one well-formed formula.\n')
+                continue
+            else:
+                break
+            i += 1
+        break
+    print('Invalid input.\n')
+print('\033[H\033[J', end='')    # Clears the screen.
 
 def parse(sentence):
     # -- : keep adding negations to negs
@@ -89,3 +127,41 @@ print(header)
 print(''.join('+' if x == '|' else '-' for x in header))
 for model, row in zip(models, table):
     print(*model.values(), '|', ' | '.join(''.join(str(x) for x in subrow) for subrow in row))
+
+if choice == '1':
+    if all(table[i][0][outputs[0][-1][1]] == 'T' for i in range(2**len(letters))):
+        print(f'\n{sentences[0]} is a tautology.')
+    elif all(table[i][0][outputs[0][-1][1]] == 'F' for i in range(2**len(letters))):
+        print(f'\n{sentences[0]} is a contradiction.')
+    else:
+        print(f'\n{sentences[0]} is contingent.')
+elif choice == '2':
+    consistent = []
+    for i in range(2**len(letters)):
+        if all(table[i][j][outputs[j][-1][1]] == 'T' for j in range(len(sentences))):
+            consistent.append(i)
+    print('\nThe set {' + ", ".join(sentences) + '} is', 'consistent.' if consistent else 'inconsistent.')
+    if consistent:
+        print('\nThese models satisfy the set:\n')
+        header = ' | '.join([' '.join(letters)] + sentences)
+        print(header)
+        print(''.join('+' if x == '|' else '-' for x in header))
+        for i in consistent:
+            print(*models[i].values(), '|', ' | '.join(''.join(str(x) for x in subrow) for subrow in table[i]))
+elif choice == '3':
+    counterexamples = []
+    for i in range(2**len(letters)):
+        if all(table[i][j][outputs[j][-1][1]] == 'T' for j in range(len(sentences)-1)) and table[i][-1][outputs[-1][-1][1]] == 'F':
+            counterexamples.append(i)
+    print('\nThe argument\n')
+    for sentence in sentences[:-1]:
+        print('  ' + sentence)
+    print('∴', sentences[-1])
+    print('\nis', 'invalid.' if counterexamples else 'valid.')
+    if counterexamples:
+        print('\nThese models are counterexamples:\n')
+        header = ' | '.join([' '.join(letters)] + sentences)
+        print(header)
+        print(''.join('+' if x == '|' else '-' for x in header))
+        for i in counterexamples:
+            print(*models[i].values(), '|', ' | '.join(''.join(str(x) for x in subrow) for subrow in table[i]))

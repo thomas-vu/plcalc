@@ -1,6 +1,6 @@
 # Propositional Logic Calculator
 
-To use:
-    python3 plcalc.py
-    or
+To use:<br>
+    python3 plcalc.py<br>
+    or<br>
     ./plcalc.py
